@@ -1,0 +1,98 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = REGION.name %}
+{% set DESCRIPTION = REGION.fullname %}
+
+{% block BODY %}
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=428f80d1-3648-4584-9df0-ce6a2ae4b22e&lang=ru_RU" type="text/javascript">
+    </script>
+
+    <div id="map" class="bg-light mt-3" style="height: 500px"></div>
+
+    <script>
+        ymaps.ready(init);
+        var myMap, myGeoObject, myRectangle;
+
+        function init () {
+            myMap = new ymaps.Map('map', {
+                center: [{{ REGION.coordinates[1] }}, {{ REGION.coordinates[0] }}],
+                zoom: 11
+            }, {
+                searchControlProvider: 'yandex#search'
+            });
+
+            var Sections = new ymaps.GeoObjectCollection({}, {
+                // Цвет и прозрачность заливки.#}
+                fillColor: 'rgba(255,30,255,0.13)',
+                // Цвет и прозрачность границ.
+                strokeColor: 'rgba(230,77,170,0.53)',
+                // Ширина линии.
+                strokeWidth: 0
+            });
+
+            {% for object in SECTION %}
+                {% for index, area in object %}
+                Sections.add(
+                    new ymaps.GeoObject({
+                        geometry: {
+                            type: 'Rectangle',
+                            coordinates: [
+                                [{{ area.coordinates[1] }}, {{ area.coordinates[0] }}],
+                                [{{ area.coordinates[1] + area.spn[1] }}, {{ area.coordinates[0] + area.spn[0] }}]
+                            ]
+                        },
+                        properties: {
+                            hintContent: '{{ index }}'
+                        }
+                    }));
+                {% endfor %}
+            {% endfor %}
+
+            // Создаем многоугольник, используя класс GeoObject.
+            var myGeoObject = new ymaps.GeoObject({
+                // Описываем геометрию геообъекта.
+                geometry: {
+                    // Тип геометрии - "Многоугольник".
+                    type: "Polygon",
+                    // Указываем координаты вершин многоугольника.
+                    coordinates: [
+                    // Координаты вершин внешнего контура.
+                    {% for object in REGION.displayGeometry.geometries %}
+                    [
+                        {% for value in object.coordinates[0] %}
+                        [{{ value[1] }}, {{ value[0] }}],
+                        {% endfor %}
+                    ],
+                    {% endfor %}
+                    ],
+                    // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
+                    fillRule: "nonZero"
+                },
+                // Описываем свойства геообъекта.
+                properties:{
+                    // Содержимое балуна.
+                    balloonContent: "Многоугольник"
+                }
+            }, {
+                // Описываем опции геообъекта.
+                // Цвет заливки.
+                fillColor: '#00FF00',
+                // Цвет обводки.
+                strokeColor: '#0000FF',
+                // Общая прозрачность (как для заливки, так и для обводки).
+                opacity: 0.5,
+                // Ширина обводки.
+                strokeWidth: 0,
+                // Стиль обводки.
+                strokeStyle: 'solid'
+            });
+
+            // Добавляем многоугольник на карту.
+            myMap.geoObjects
+                .add(myGeoObject)
+                .add(Sections)
+                // .add(SectionsCenter);
+        }
+    </script>
+
+{% endblock %}

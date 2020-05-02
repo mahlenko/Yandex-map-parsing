@@ -1,0 +1,61 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = 'Прокси' %}
+{% set DESCRIPTION = 'Добавить или изменить настройки прокси сервера' %}
+
+{% block BODY %}
+
+    {{ form_open() }}
+        <table class="table">
+            <tr>
+                <td>Сервер</td>
+                <td>
+                    {{ form_input('server', set_value('server', PROXY.server)) }}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Порт</td>
+                <td>
+                    {{ form_input('port', set_value('port', PROXY.port)) }}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Пользователь</td>
+                <td>
+                    {{ form_input('login', set_value('login', PROXY.login)) }}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Пароль</td>
+                <td>
+                    {{ form_input('password') }}
+                    {% if PROXY %}
+                        <small class="form-text text-muted">Введите новый пароль если хотите его изменить</small>
+                    {% endif %}
+                </td>
+            </tr>
+
+            <tr>
+                <td>Яндекс токен</td>
+                <td>
+                    {{ form_input('token', set_value('token', PROXY.token), 'readonly') }}
+                    <small class="form-text text-muted">
+                        Яндекс токен, потребуется для дальнейшего парсинга.
+                        {% if PROXY %}
+                            <br>
+                            <a href="{{ site_url("yandex/proxy/getTokens/#{PROXY.proxy_id}") }}">
+                                {% if PROXY.token %}Обновить токен{% else %}Получить токен{% endif %}</a>.
+                        {% endif %}
+                    </small>
+                </td>
+            </tr>
+        </table>
+
+
+        <button type="submit" class="btn btn-primary">Сохранить прокси</button>
+        <a href="{{ site_url('yandex/proxy') }}" class="btn btn-link">Закрыть</a>
+    </form>
+
+{% endblock %}

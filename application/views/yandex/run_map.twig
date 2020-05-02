@@ -1,0 +1,56 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = REGION.name %}
+{% set DESCRIPTION = REGION.fullname %}
+
+{% block BODY %}
+    <h2>Регион на карте: {{ STATUS }}</h2>
+    <div id="map" class="bg-light mt-3" style="height: 500px"></div>
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=428f80d1-3648-4584-9df0-ce6a2ae4b22e&lang=ru_RU" type="text/javascript">
+    </script>
+
+    <script>
+        ymaps.ready(init);
+        var myMap, myGeoObject, myRectangle;
+
+        function init () {
+            myMap = new ymaps.Map('map', {
+                center: [{{ POINT.coord_x }}, {{ POINT.coord_y }}],
+                zoom: 10
+            }, {
+                searchControlProvider: 'yandex#search'
+            });
+
+            // Cоздаем геообъект с типом геометрии "прямоугольник".
+            {% for item in COORDINATES %}
+            myRectangle_{{ loop.index }} = new ymaps.GeoObject({
+                // Геометрия = тип геометрии + координаты геообъекта.
+                geometry: {
+                    // Тип геометрии - прямоугольник.
+                    type: 'Rectangle',
+                    // Координаты.
+                    coordinates: [
+                        [{{ item.start }}],
+                        [{{ item.end }}]
+                    ]
+                },
+                // Свойства.
+                properties: {
+                    hintContent: 'Прямоугольник {{ loop.index }}',
+                }
+            }, {
+                // Цвет и прозрачность заливки.
+                fillColor: 'rgba(35,134,255,0.13)',
+                // Цвет и прозрачность границ.
+                strokeColor: 'rgba(23,77,170,0.53)',
+                // Ширина линии.
+                strokeWidth: 1
+            });
+            {% endfor %}
+
+            myMap.geoObjects
+                {% for item in COORDINATES %}.add(myRectangle_{{ loop.index }}){% endfor %};
+        }
+    </script>
+
+{% endblock %}

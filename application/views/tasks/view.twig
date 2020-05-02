@@ -1,0 +1,103 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = REGION.name %}
+{% set DESCRIPTION = REGION.fullname %}
+
+{% block BODY %}
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=428f80d1-3648-4584-9df0-ce6a2ae4b22e&lang=ru_RU" type="text/javascript">
+    </script>
+
+    <p>
+        <a href="{{ site_url('yandex/geography') }}" class="btn btn-light"><i class="fas fa-chevron-left mr-2"></i> Вернуться к списку регионов</a>
+    </p>
+
+    <table class="table wy-table-striped">
+        <tbody>
+        <tr>
+            <td>Статус</td>
+            <td>{{ TASK.status }}</td>
+        </tr>
+        <tr>
+            <td>Регион поиска</td>
+            <td>{{ TASK.geography.fullname }}</td>
+        </tr>
+        <tr>
+            <td>Ключевая фраза</td>
+            <td>{{ TASK.text | capitalize }}</td>
+        </tr>
+        <tr>
+            <td>Собрано компаний</td>
+            <td>
+                {{ TASK.companies_count }}<br>
+                <small class="text-secondary">
+                    Последнее обновление: {{ TASK.modified | date('d.m.Y в H:i:s') }}
+                </small>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Регион на карте</h2>
+    <div id="map" class="bg-light mt-3" style="height: 500px"></div>
+
+    <script>
+        ymaps.ready(init);
+        var myMap, myGeoObject, myRectangle;
+
+        function init () {
+            myMap = new ymaps.Map('map', {
+                center: [{{ TASK.geography.positions.point.lat }}, {{ TASK.geography.positions.point.lon }}],
+                zoom: 10
+            }, {
+                searchControlProvider: 'yandex#search'
+            });
+
+            var Current = new ymaps.GeoObjectCollection({}, {
+                // Цвет и прозрачность заливки.#}
+                fillColor: 'rgba(35,134,255,0.13)',
+                // Цвет и прозрачность границ.
+                strokeColor: 'rgba(23,77,170,0.53)',
+                // Ширина линии.
+                strokeWidth: 1
+            });
+
+            var Sections = new ymaps.GeoObjectCollection({}, {
+                // Цвет и прозрачность заливки.#}
+                fillColor: 'rgba(35,134,255,0.13)',
+                // Цвет и прозрачность границ.
+                strokeColor: 'rgba(23,77,170,0.53)',
+                // Ширина линии.
+                strokeWidth: 1
+            });
+
+            {% for item in TASK.geography.positions.bounding %}
+            {% if (loop.index != TASK.position) %}
+                Sections.add(
+                    new ymaps.GeoObject({
+                        geometry: {
+                            type: 'Rectangle',
+                            coordinates: [
+                                [{{ item.lat }}, {{ item.lon }}],
+                                [{{ item.lat_end }}, {{ item.lon_end }}]
+                            ]
+                        }
+                    }));
+            {% endif %}
+                Current.add(
+                    new ymaps.GeoObject({
+                        geometry: {
+                            type: 'Rectangle',
+                            coordinates: [
+                                [{{ TASK.geography.positions.bounding[TASK.position].lat }}, {{ TASK.geography.positions.bounding[TASK.position].lon }}],
+                                [{{ TASK.geography.positions.bounding[TASK.position].lat_end }}, {{ TASK.geography.positions.bounding[TASK.position].lon_end }}]
+                            ]
+                        }
+                    }));
+            {% endfor %}
+
+            myMap.geoObjects.add(Sections);
+            myMap.geoObjects.add(Current);
+        }
+    </script>
+
+{% endblock %}

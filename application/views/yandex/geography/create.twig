@@ -1,0 +1,19 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = 'Добавить регион' %}
+{% set DESCRIPTION = 'Создаст новый регион для парсинга организаций.' %}
+
+{% block BODY %}
+    {{ form_open() }}
+        <table class="table">
+            <tr>
+                <td>Регион</td>
+                <td>
+                    {{ form_input('region', set_value('region'), 'placeholder="Россия, Московская область, Клин"') }}
+                </td>
+            </tr>
+        </table>
+
+        <button type="submit" class="btn btn-primary">Добавить регион</button>
+        <a href="{{ site_url('yandex/geography') }}" class="btn btn-link">Закрыть</a>
+    {{ form_close() }}
+{% endblock %}

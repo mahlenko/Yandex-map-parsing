@@ -1,0 +1,43 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = 'Географические регионы' %}
+{% set DESCRIPTION = 'Список доступных регионов для последующего парсинга компаний.' %}
+
+{% block BODY %}
+    <p>
+        <a href="{{ site_url('yandex/geography/create') }}" class="btn btn-success">Добавить регион</a>
+    </p>
+
+    <table class="table table-striped">
+            <thead class="thead-dark">
+            <tr>
+                <th>ID</th>
+                <th>Страна</th>
+                <th>Название</th>
+                <th>Полное название</th>
+                <th></th>
+            </tr>
+            </thead>
+
+        <tbody>
+        {% for region in GEOGRAPHY %}
+            <tr>
+                <td>{{ region.geo_id }}</td>
+                <td>{{ region.description }}</td>
+                <td>{{ region.name }}</td>
+                <td>{{ region.address }}</td>
+                <td>
+                    <a title="Смотреть регион" href="{{ site_url("yandex/geography/view/#{region.geo_id}") }}">
+                        <i class="far fa-eye"></i>
+                    </a>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">
+                    <p>У вас еще нет ни одного прокси сервера.</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

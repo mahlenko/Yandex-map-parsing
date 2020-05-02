@@ -1,0 +1,22 @@
+{% set NAVIGATION = {
+    'tasks/task' : 'Задачи',
+    'yandex/geography' : 'Регионы',
+    'yandex/proxy' : 'Прокси',
+} %}
+
+<nav class="navbar navbar-dark bg-dark navbar-expand-lg">
+    <a class="navbar-brand" href="#">Yandex.Parser</a>
+    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <ul class="navbar-nav mr-auto">
+            {% for url, text in NAVIGATION %}
+                <li class="nav-item {% if site_url(url) == current_url() %}active{% endif %}">
+                    <a class="nav-link" href="{{ site_url(url) }}">{{ text }}</a>
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>

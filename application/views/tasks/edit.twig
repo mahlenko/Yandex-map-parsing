@@ -1,0 +1,31 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = 'Новая задача' %}
+{% set DESCRIPTION = 'Создайте новую задачу, указав ключевую фразу и выбрав региона поиска.' %}
+
+{% block BODY %}
+    {{ form_open() }}
+    <table class="table">
+        <tr>
+            <td>Регион</td>
+            <td>
+                {{ form_dropdown('geo_id', GEOGRAPHY, set_value('geo_id', TASK.geo_id)) }}
+            </td>
+        </tr>
+        <tr>
+            <td>Рубрика</td>
+            <td>
+                {{ form_dropdown('rubric_id', RUBRICS, set_value('rubric_id', TASK.rubric_id)) }}
+            </td>
+        </tr>
+        <tr>
+            <td>Ключевая фраза</td>
+            <td>
+                {{ form_input('text', set_value('text', TASK.text)) }}
+            </td>
+        </tr>
+    </table>
+
+    <button type="submit" class="btn btn-primary">Сохранить задачу</button>
+    <a href="{{ site_url('tasks/task') }}" class="btn btn-link">Закрыть</a>
+    {{ form_close() }}
+{% endblock %}

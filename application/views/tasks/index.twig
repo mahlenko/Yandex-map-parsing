@@ -1,0 +1,227 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = 'Задачи' %}
+{% set DESCRIPTION = 'Список ваших задач. Задачи имеют несколько статусов.' %}
+
+{# Классы для разной подсветки статусов #}
+{% set STATUS_CLASS_COLORS = {
+    'CREATED': 'text-secondary',
+    'RUN': 'text-success',
+    'STOPPED': 'text-danger',
+    'PAUSED': 'text-secondary'
+} %}
+
+{# Иконка статуса для выпадающего списка #}
+{% set STATUS_ICON = {
+    'RUN': '<small class="text-success mr-1"><i class="fas fa-play"></i></small>',
+    'STOPPED': '<small class="text-danger mr-2"><i class="fas fa-stop"></i></small>',
+    'PAUSED': '<small class="text-secondary mr-2"><i class="fas fa-pause"></i></small>'
+} %}
+
+{% block BODY %}
+    <p>
+        <a href="{{ site_url('tasks/edit') }}" class="btn btn-success">Создать задачу</a>
+    </p>
+
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Статус задачи</th>
+                <th>Задача</th>
+                <th>Процесс выполнения</th>
+                <th>Создан</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+        {% for task in TASKS %}
+            <tr data-id="{{ task.task_id }}">
+                <td>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-light dropdown-toggle {{ STATUS_CLASS_COLORS[task.status] }}" data-toggle="dropdown" data-display="static" aria-haspopup="true" aria-expanded="false">
+                            {% if STATUS_ICON[task.status] %}{{ STATUS_ICON[task.status] }}{% endif %} {{ STATUS_LIST[task.status] }}
+                        </button>
+                        <div class="dropdown-menu">
+                            <h6 class="dropdown-header">Изменить статус</h6>
+                            {% for key, name in STATUS_LIST %}
+                                {% if key != 'CREATED' and key != 'COMPLETE' %}
+                                <a class="dropdown-item{% if task.status == 'CREATED' and key != 'RUN' %} disabled{% endif %}"  href="{{ site_url("/tasks/edit/status/#{task.task_id}/#{key|lower}") }}"{% if task.status == 'CREATED' and key != 'RUN' %} tabindex="-1" aria-disabled="true"{% endif %}{% if key == 'STOPPED' %} onclick="return confirm('Вы действительно хотите остановить получение организаций?\nПри повторном запуске, сбор организация начнется сначала.\nОстановить задачу? ');" {% endif %}>
+                                    {% if STATUS_ICON[key] %}{{ STATUS_ICON[key] }}{% endif %}
+                                    {{ name }}
+                                </a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    {% if task.rubric_id %}
+                        {{ task.rubric.pluralName }}<br>
+                    {% endif %}
+                    {% if task.text %}
+                        {{ task.text }}<br>
+                    {% endif %}
+                    <small class="text-secondary">{{ task.geography.address }}</small>
+                </td>
+                <td>
+                    {% set percent = ((task.position / task.geography.containers | length) * 100) | round('0', 'floor') %}
+                    <div class="progress" style="height: 1.2rem" title="{{ task.position }} из {{ task.geography.containers | length }}">
+                        <div class="progress-bar{% if task.status == 'RUN' %} bg-success{% else %} bg-secondary{% endif %}{% if task.status == 'RUN' %} progress-bar-striped progress-bar-animated{% endif %}" role="progressbar" aria-valuenow="{{ percent }}" aria-valuemin="0" aria-valuemax="100" style="width: {{ percent }}%">
+                            <small><strong>{{ percent }}%</strong></small>
+                        </div>
+                    </div>
+                    {% if task.start_process and not task.end_process %}
+                        {% if task.position %}
+                        <small class="text-secondary">
+                            {% if task.status == 'RUN' %}
+                            <i class="fas fa-spinner fa-spin"></i>
+                            {% else %}
+                                {{ STATUS_ICON['PAUSED'] }}
+                            {% endif %}
+                            Работает с {{ task.start_process | date('d.m.Y в H:i:s', 'Europe/Moscow') }}
+                        </small>
+                        {% elseif task.status == 'RUN' %}
+                            {# текст об ожидании #}
+                            <small class="text-secondary" data-type="waiting">...</small>
+                        {% endif %}
+                    {% endif %}
+
+                    {% if task.end_process %}
+                        <small class="text-secondary"><i class="fas fa-check text-success"></i> Завершен: {{ task.end_process | date('d.m.Y в H:i:s', 'Europe/Moscow') }}</small>
+                        <br><small class="text-secondary">База собрана за: {{ task.execution_time }}</small>
+                    {% endif %}
+
+                    {# количество собранных записей #}
+                    <br><small class="text-info {% if not task.start_process %}d-none{% endif %}">Найдено компаний: <span class="companies_count">{{ task.companies_count }}</span></small>
+
+                    {# стоимость задачи #}
+                    {% set rounding = 10 %}
+                    {% set price = ((task.companies_count * 0.5) / rounding) | round(0, 'ceil') * rounding %}
+                    <br><small class="text-success {% if not task.start_process %}d-none{% endif %}">Стоимость: <span class="task_price">{{ price }}</span> руб.</small>
+                </td>
+                <td>{{ task.created | date('d.m.Y') }}</td>
+                <td>
+                    {% if task.status == 'CREATED' %}
+                    <a title="Редактировать" href="{{ site_url("tasks/edit/index/#{task.task_id}") }}"><i class="far fa-edit"></i></a>
+                    {% endif %}
+
+                    {% if task.status == 'COMPLETE' %}
+                        <a href="{{ site_url("export/excel/index/#{task.task_id}") }}" class="btn btn-sm btn-light text-nowrap">
+                            <i class="fas fa-table text-success"></i>
+                            Выгрузить в файл
+                        </a>
+
+                        <br><a href="{{ site_url("export/excel/index/#{task.task_id}/1") }}" class="mt-2 btn btn-sm btn-light text-nowrap">
+                            <i class="fas fa-table text-success"></i>
+                            Получить демо
+                        </a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">
+                    <p>У вас еще нет ни одной задачи.</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    {# -- обновление статуса задач -- #}
+    {% if RUN_TASKS_ID %}
+        <style>
+            .fas.fa-hourglass-start,
+            .fas.fa-hourglass-half,
+            .fas.fa-hourglass-end
+            {
+                transition: all 0.15s ease-in-out;
+                position: relative;
+            }
+        </style>
+    <script>
+
+        /**
+         * Анимация ожидания
+         * @param $elements
+         */
+        function waiting($elements)
+        {
+            $elements.html('<i class="far fa-hourglass"></i> Ожидает в очереди');
+
+            setInterval(function(){
+                $elements.html('<i class="fas fa-hourglass-start"></i> Ожидает в очереди.');
+                setTimeout(function(){
+                    $elements.html('<i class="fas fa-hourglass-half"></i> Ожидает в очереди..');
+
+                    setTimeout(function(){
+                        $elements.html('<i class="fas fa-hourglass-end"></i> Ожидает в очереди...');
+
+                        setTimeout(function(){
+                            $elements.html('<i class="far fa-hourglass"></i> Ожидает в очереди');
+                        }, 500);
+                    }, 500)
+                }, 500)
+            }, 2000);
+        }
+
+        $(document).ready(function()
+        {
+            // ожидает запуска
+            if ($('*[data-type="waiting"]').length) {
+                waiting($('*[data-type="waiting"]'));
+            }
+
+            var run_tasks = [{{ RUN_TASKS_ID | join(',') }}];
+            setInterval(function(){
+                $.post('/tasks/task/run_status', {'tasks_id': run_tasks}, function(response) {
+                    // по завершению всех задач перезагрузит страницу
+                    if (response.result == 'complete') {
+                        window.location.reload();
+                    }
+
+                    if (response.result == 'ok') {
+                        if (response.tasks) {
+                            $.each(response.tasks, function () {
+                                var $row = $('tr[data-id="' + this.task_id + '"]');
+                                var containers = this.geography.containers;
+                                var percent = Math.floor((this.position / Object.keys(containers).length) * 100);
+                                var $progressBar = $row.find('.progress').find('.progress-bar');
+
+                                if (percent > 100) percent = 100;
+
+                                // обновляем страницу если это первый старт
+                                if (this.position == 1 && this.skip == 0) {
+                                    window.location.reload();
+                                    return;
+                                }
+
+                                // обновляем прогрессбар
+                                $progressBar
+                                    .attr({'aria-valuenow': percent})
+                                    .css('width', percent + '%')
+                                    .find('strong')
+                                    .text(percent + '%');
+
+                                $progressBar.parent().attr('title', this.position + ' из ' + Object.keys(containers).length);
+
+                                // количество собранных записей
+                                $row.find('.companies_count').slideDown().text(this.companies_count);
+
+                                // стоимость задачи
+                                var rounding = 10;
+                                var price = Math.ceil((this.companies_count * 0.5) / rounding) * rounding;
+                                $row.find('.task_price').slideDown().text(price);
+                            });
+                        } else {
+                            // перезагружаем страницу
+                            window.location.reload();
+                        }
+                    }
+                });
+            }, 3000);
+        });
+    </script>
+    {# -- end: обновление статуса задач -- #}
+    {% endif %}
+{% endblock %}

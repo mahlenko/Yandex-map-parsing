@@ -1,0 +1,150 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = REGION.name %}
+{% set DESCRIPTION = REGION.fullname %}
+
+{% block BODY %}
+
+    <script src="https://api-maps.yandex.ru/2.1/?apikey=428f80d1-3648-4584-9df0-ce6a2ae4b22e&lang=ru_RU" type="text/javascript">
+    </script>
+
+    <p>
+        <a href="{{ site_url('yandex/geography') }}" class="btn btn-light"><i class="fas fa-chevron-left mr-2"></i> Вернуться к списку регионов</a>
+    </p>
+
+    <table class="table wy-table-striped">
+        <tbody>
+        <tr>
+            <td>Яндекс ID</td>
+            <td>{{ REGION.geo_id }}</td>
+        </tr>
+        <tr>
+            <td>Название</td>
+            <td>{{ REGION.name }}</td>
+        </tr>
+        <tr>
+            <td>Страна</td>
+            <td>{{ REGION.description }}</td>
+        </tr>
+        <tr>
+            <td>Полное название</td>
+            <td>{{ REGION.address }}</td>
+        </tr>
+        <tr>
+            <td>Добавлен</td>
+            <td>
+                {{ REGION.created | date('d.m.Y в H:i:s') }}<br>
+                <small class="text-secondary">
+                    Последнее обновление: {{ REGION.modified | date('d.m.Y в H:i:s') }}
+                </small>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Координаты региона</h2>
+    <table class="table mt-3">
+        <thead class="thead-light">
+            <tr>
+                <th>Центр</th>
+                <th>Объектов парсинга</th>
+                <th>Секций парсинга</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>[{{ REGION.lat }}, {{ REGION.lon }}]</td>
+                <td>{{ REGION.polygons | length }}</td>
+                <td>{{ REGION.containers | length }}</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2>Регион на карте</h2>
+    <div id="map" class="bg-light mt-3" style="height: 500px"></div>
+
+    <script>
+        ymaps.ready(init);
+        var myMap, Polygons, Sections;
+
+        function init () {
+            myMap = new ymaps.Map('map', {
+                center: [{{ REGION.lat }}, {{ REGION.lon }}],
+                zoom: {{ REGION.zoom }}
+            }, {
+                searchControlProvider: 'yandex#search'
+            });
+
+            Sections = new ymaps.GeoObjectCollection({}, {
+                // Цвет и прозрачность заливки.#}
+                fillColor: 'rgba(255,30,255,0.13)',
+                // Цвет и прозрачность границ.
+                strokeColor: 'rgba(230,77,170,0.53)',
+                // Ширина линии.
+                strokeWidth: 0
+            });
+
+            {% for container in REGION.containers %}
+                Sections.add(
+                    new ymaps.GeoObject({
+                        geometry: {
+                            type: 'Rectangle',
+                            coordinates: [
+                                [{{ container.lat }}, {{ container.lon }}],
+                                [{{ container.lat + container.spn_lat }}, {{ container.lon + container.spn_lon }}]
+                            ]
+                        },
+                        properties: {
+                            hintContent: '{{ index }}'
+                        }
+                    })
+                );
+            {% endfor %}
+
+            // Создаем многоугольник, используя класс GeoObject.
+            Polygons = new ymaps.GeoObject({
+                // Описываем геометрию геообъекта.
+                geometry: {
+                    // Тип геометрии - "Многоугольник".
+                    type: "Polygon",
+                    // Указываем координаты вершин многоугольника.
+                    coordinates: [
+                        // Координаты вершин внешнего контура.
+                        {% for area in REGION.polygons %}
+                        [
+                            {% for poligon in area %}
+                            [{{ poligon.lat }}, {{ poligon.lon }}],
+                            {% endfor %}
+                        ],
+                        {% endfor %}
+                    ],
+                    // Задаем правило заливки внутренних контуров по алгоритму "nonZero".
+                    fillRule: "nonZero"
+                },
+                // Описываем свойства геообъекта.
+                properties:{
+                    // Содержимое балуна.
+                    balloonContent: "Многоугольник"
+                }
+            }, {
+                // Описываем опции геообъекта.
+                // Цвет заливки.
+                fillColor: '#00FF00',
+                // Цвет обводки.
+                strokeColor: '#0000FF',
+                // Общая прозрачность (как для заливки, так и для обводки).
+                opacity: 0.5,
+                // Ширина обводки.
+                strokeWidth: 0,
+                // Стиль обводки.
+                strokeStyle: 'solid'
+            });
+
+            // Добавляем многоугольник на карту.
+            myMap.geoObjects
+                .add(Polygons)
+                .add(Sections)
+            // .add(SectionsCenter);
+        }
+    </script>
+
+{% endblock %}

@@ -1,0 +1,59 @@
+{% extends 'layouts/default.twig' %}
+{% set TITLE = 'Прокси' %}
+{% set DESCRIPTION = 'Используемые прокси сервера для парсинга' %}
+
+{% block BODY %}
+    <div class="d-flex justify-content-between">
+        <p>
+            <a href="{{ site_url('yandex/proxy/edit') }}" class="btn btn-success">Добавить прокси</a>
+            <a href="{{ site_url('yandex/proxy/load') }}" class="btn btn-primary">Загрузить по API</a>
+        </p>
+{#        <p>#}
+{#            <a href="{{ site_url('yandex/proxy/getTokens') }}" class="btn btn-light ml-2"><i class="fas fa-sync-alt"></i> Обновить токены</a>#}
+{#        </p>#}
+    </div>
+
+    <table class="table table-striped">
+        <thead class="thead-dark">
+        <tr>
+            <th width="20"></th>
+            <th>Сервер</th>
+            <th>HTTP</th>
+            <th>SOCKS</th>
+            <th>Капчи</th>
+            <th>Выполнил</th>
+            <th>Оплачен "до"</th>
+            <th>Обновлен</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for proxy in proxy_list %}
+            <tr>
+                <td>
+                    <i class="far fa-check-circle {% if proxy.active %}text-success{% else %}text-secondary{% endif %}"></i>
+                </td>
+                <td>
+                    <a title="Редактировать" href="{{ site_url("yandex/proxy/edit/#{proxy.proxy_id}") }}">
+                        {{ proxy.server }}
+                    </a>
+                    <br>
+                    <small class="text-secondary">{{ proxy.login }} / {% if proxy.password %}{{ proxy.password }}{% endif %}</small>
+                </td>
+                <td>{{ proxy.port }}</td>
+                <td>{{ proxy.socks_port }}</td>
+                <td>{{ proxy.captcha_detect }}</td>
+                <td>{{ proxy.used_tasks }}</td>
+                <td>{{ proxy.expired | date('d.m.Y H:i') }}</td>
+                <td>{{ proxy.modified | date('d.m.Y в H:i', 'Europe/Moscow') }}</td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">
+                    <p>У вас еще нет ни одного прокси сервера.</p>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
