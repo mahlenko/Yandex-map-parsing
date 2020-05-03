@@ -107,6 +107,7 @@ class Yacaptcha
 
                 if (is_cli()) {
                     dump_error('Капча не прошла проверку проверку Яндексом.');
+                    dump_warning('Отправил уведомление об этом в сервис решения капчи.');
                 }
 
                 return false;
