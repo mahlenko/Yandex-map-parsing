@@ -68,7 +68,7 @@ if (! function_exists('dump_color'))
         $colors = [
             'success' => '1;32',
             'error'   => '1;31',
-            'info'    => '1;34',
+            'info'    => '3;36',
             'warning' => '1;33'
         ];
 
@@ -78,6 +78,6 @@ if (! function_exists('dump_color'))
             return;
         }
 
-        echo "\e[".$colors[$color]."m". trim($message) ."\e[0m" . $br;
+        echo "\e[".$colors[$color]."m". $message ."\e[0m" . $br;
     }
 }

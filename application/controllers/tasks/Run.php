@@ -141,7 +141,10 @@ class Run extends MY_Controller
      */
     private function run($task)
     {
-        if (is_cli()) dump_info(date('H:i:s'). ': Отправляем запрос в Яндекс');
+        if (is_cli()) {
+            dump_info('-------------------------------------------');
+            dump_info(date('H:i:s'). ': Отправляем запрос в Яндекс');
+        }
 
         // загружаем компании
         $data = $this->map_requests->load($task);
@@ -169,7 +172,8 @@ class Run extends MY_Controller
 
         // сохраняем полученные данные о кампаниях
         $task = $this->company_m->add($data, $task);
-        dump_success('-- Конец обработки запроса.');
+        //dump_success('Конец обработки запроса.');
+        //dump_info('-------------------------------------------');
 
         // зацикливаем в один запрос если есть что проверить
         if (! is_bool($task)) {

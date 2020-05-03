@@ -60,7 +60,7 @@ class Company_emails_m extends MY_Model
             // поиск страниц контактов по sitemap.xml
             $pages = $this->findContactPages($punycode, $company_id);
             if ($pages) {
-                dump_warning('Страниц поиска email: ' . count($pages));
+                //dump_warning('-- Страниц поиска email: ' . count($pages));
             }
 
             if (! $pages) {
@@ -70,7 +70,7 @@ class Company_emails_m extends MY_Model
             // парсинг найденных страниц
             foreach ($pages as $page) {
 
-                dump_info('Просмотр страницы: '. $page);
+                //dump_info('Просмотр страницы: '. $page);
 
                 $curl = new Curl();
                 $curl->setTimeout(1);
@@ -78,7 +78,7 @@ class Company_emails_m extends MY_Model
 
                 if ($curl->httpStatusCode === 200) {
                     // успешная загрузка страницы, ищем email адреса
-                    preg_match_all('/([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.[a-zA-Z]{2,6})/ui', $curl->response, $_emails, PREG_SET_ORDER);
+                    preg_match_all('/([a-zA-Z0-9\._%+\-]+@[a-zA-Z0-9\.\-]+\.(ru|com|by|net|org|info|io))/ui', $curl->response, $_emails, PREG_SET_ORDER);
 
                     if ($_emails) {
                         $emails_arr = [];
@@ -99,19 +99,25 @@ class Company_emails_m extends MY_Model
                                     'email' => $email,
                                 ];
 
+                                dump_info('-- Найден email компании: '. $email.' | ', false);
+
                                 // проверяем что такого ящика еще нет у компании
                                 if ($this->count($company_id, $data)) {
+                                    dump_warning('Пропущен.');
                                     continue;
                                 }
 
                                 // добавляем почтовый ящик к компании
                                 if (! $this->save(null, $data)) {
                                     foreach ($this->errors()['error_text'] as $error) {
+                                        dump_error('Ошибка.');
                                         $this->save_error($error);
                                     }
 
                                     return false;
                                 }
+
+                                dump_success('OK');
                             }
                         }
                     }
@@ -144,7 +150,7 @@ class Company_emails_m extends MY_Model
         // не проверяем не доступные адреса
         if ($this->company_urls_m->count(null, ['url' => $url, 'company_id' => $company_id, 'check_status_code' => 200]))
         {
-            dump_error('Адрес ' . $url . ' проверялся ранее.');
+            dump_error('-- Адрес ' . $url . ' проверялся ранее.');
             return false;
         }
 

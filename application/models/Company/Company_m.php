@@ -116,7 +116,7 @@ class Company_m extends MY_Model
         }
 
         if (is_cli() && $company_add_count) {
-            dump_success("Добавлено компаний: " . $company_add_count);
+            dump_success("-- Добавлено компаний: " . $company_add_count);
         }
 
         // обновляем задачу
@@ -408,7 +408,7 @@ class Company_m extends MY_Model
                 'company_id' => $company_id,
             ];
 
-            dump_warning('Добавлен сайт компании: '. $link->href);
+            dump_success('-- Добавлен сайт компании: '. $link->href);
 
             if ($this->company_social_m->count(null, $data)) {
                 continue;
@@ -572,7 +572,7 @@ class Company_m extends MY_Model
     private function emails($urls, int $company_id)
     {
         $this->load->model('Company/company_emails_m');
-        dump_info('Поиск email адресов: ' . implode(', ', $urls));
+        dump_info('-- Поиск email адресов: ' . implode(', ', $urls));
         return $this->company_emails_m->findAndSave($urls, $company_id);
     }
 

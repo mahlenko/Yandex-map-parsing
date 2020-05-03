@@ -49,12 +49,12 @@ class Yacaptcha
         $anticaptcha = $this->getSolve($captcha);
         if (! $anticaptcha) {
             if (is_cli()) {
-                dump_error('Капча не решена.');
+                dump_error('-- Капча не решена.');
             }
             return false;
         }
 
-        dump_info('Получили решение капчи. '. $anticaptcha['query']['rep']);
+        dump_info('-- Получили решение капчи. '. $anticaptcha['query']['rep']);
 
         // отправим запрос с ответом капчи в Яндекс
         $curl = $requests->get($this->server, $anticaptcha['query']);
@@ -94,7 +94,7 @@ class Yacaptcha
                     ]);
 
                     if (is_cli()) {
-                        dump_success('Капча успешно прошла проверку.');
+                        dump_success('-- Капча успешно прошла проверку.');
                         //dump('Капча успешно прошла проверку.');
                     }
 
@@ -106,8 +106,8 @@ class Yacaptcha
                 $this->ci->captcha->badCaptcha($anticaptcha['token']);
 
                 if (is_cli()) {
-                    dump_error('Капча не прошла проверку проверку Яндексом.');
-                    dump_warning('Отправил уведомление об этом в сервис решения капчи.');
+                    dump_error('-- Капча не прошла проверку проверку Яндексом.');
+                    dump_warning('-- Отправил уведомление об этом в сервис решения капчи.');
                 }
 
                 return false;
@@ -130,7 +130,7 @@ class Yacaptcha
         $timeout = $this->timeout;
 
         if (is_cli()) {
-            dump_warning('Отправка запроса на решение капчи.');
+            dump_warning('-- Отправка запроса на решение капчи.');
         }
 
         // отправляем капчу на распознание
