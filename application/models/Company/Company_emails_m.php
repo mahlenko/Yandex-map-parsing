@@ -142,7 +142,7 @@ class Company_emails_m extends MY_Model
         $robots_txt = trim($url, '/') .'/robots.txt';
 
         // не проверяем не доступные адреса
-        if (! $this->company_urls_m->count(null, ['url' => $url, 'company_id' => $company_id, 'check_status_code' => 200]))
+        if ($this->company_urls_m->count(null, ['url' => $url, 'company_id' => $company_id, 'check_status_code' => 200]))
         {
             dump_error('Адрес ' . $url . ' проверялся ранее.');
             return false;
