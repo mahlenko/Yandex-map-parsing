@@ -49,12 +49,12 @@ class Yacaptcha
         $anticaptcha = $this->getSolve($captcha);
         if (! $anticaptcha) {
             if (is_cli()) {
-                dump('Капча не решена.');
+                dump_error('Капча не решена.');
             }
             return false;
         }
 
-        dump('Получили решение капчи.', $anticaptcha);
+        dump_info('Получили решение капчи. '. $anticaptcha['query']['rep']);
 
         // отправим запрос с ответом капчи в Яндекс
         $curl = $requests->get($this->server, $anticaptcha['query']);
@@ -67,6 +67,8 @@ class Yacaptcha
             // разбираем результат перенаправления
             $location_array = parse_url($curl->responseHeaders['location']);
             $ret_path = parse_url($anticaptcha['query']['retpath']);
+
+            //dump($curl);
 
             /**
              * Если переадресация яндекса ведет на страницу нашего запроса
@@ -82,6 +84,9 @@ class Yacaptcha
                 $spravka = $curl->getCookie('spravka');
                 if ($spravka) {
                     $this->ci->proxy_m->setCookie($requests->proxy->proxy_id, 'spravka', $spravka);
+                    if ($i = $curl->getCookie('i')) {
+                        $this->ci->proxy_m->setCookie($requests->proxy->proxy_id, 'i', $i);
+                    }
 
                     // отметим выдачу капчи
                     $this->ci->proxy_m->save($requests->proxy->proxy_id, [
@@ -89,7 +94,8 @@ class Yacaptcha
                     ]);
 
                     if (is_cli()) {
-                        dump('Капча успешно прошла проверку.');
+                        dump_success('Капча успешно прошла проверку.');
+                        //dump('Капча успешно прошла проверку.');
                     }
 
                     return true;
@@ -100,7 +106,7 @@ class Yacaptcha
                 $this->ci->captcha->badCaptcha($anticaptcha['token']);
 
                 if (is_cli()) {
-                    dump('Капча не прошла проверку проверку Яндексом.');
+                    dump_error('Капча не прошла проверку проверку Яндексом.');
                 }
 
                 return false;
@@ -123,7 +129,7 @@ class Yacaptcha
         $timeout = $this->timeout;
 
         if (is_cli()) {
-            dump('Отправка запроса на решение капчи.');
+            dump_warning('Отправка запроса на решение капчи.');
         }
 
         // отправляем капчу на распознание

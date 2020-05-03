@@ -1,7 +1,7 @@
 #!/bin/bash
 echo "---------------------------------------"
 echo " Бекап категорий"
-php -f index.php import rubrics
+#php -f index.php import rubrics
 wait
 echo " ОК "
 

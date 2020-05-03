@@ -5,7 +5,7 @@
 DROP TABLE IF EXISTS `categories`;
 
 CREATE TABLE `categories` (
-  `id` bigint(20) unsigned NOT NULL,
+  `id` bigint unsigned NOT NULL,
   `pluralName` varchar(50) NOT NULL DEFAULT '',
   `name` varchar(50) CHARACTER SET utf8 COLLATE utf8_general_ci NOT NULL DEFAULT '',
   `seoname` varchar(50) DEFAULT NULL,

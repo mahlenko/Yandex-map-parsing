@@ -116,7 +116,7 @@ class Company_m extends MY_Model
         }
 
         if (is_cli() && $company_add_count) {
-            dump(date('H:i:s') . " Добавлено: " . $company_add_count);
+            dump_success("Добавлено компаний: " . $company_add_count);
         }
 
         // обновляем задачу
@@ -292,12 +292,13 @@ class Company_m extends MY_Model
         $this->load->model('Company/company_phone_m');
 
         foreach ($phones as $phone) {
+
             $data = [
                 'type'          => $phone->type,
-                'info'          => $phone->info,
+                'info'          => $phone->info ?? '',
                 'number'        => $phone->number,
                 'company_id'    => $company_id,
-                'extraNumber'   => $phone->extraNumber,
+                'extraNumber'   => $phone->extraNumber ?? '',
             ];
 
             if (! $this->company_phone_m->count(null, ['number' => $phone->number, 'company_id' => $company_id])) {
@@ -323,10 +324,9 @@ class Company_m extends MY_Model
     {
         $this->load->model('Company/company_category_m');
 
-        foreach ($categories as $category) {
-
+        foreach ($categories as $category)
+        {
             $data = [
-                'id'            => $category->id,
                 'name'          => $category->name,
                 'seoname'       => $category->seoname,
                 'pluralName'    => $category->pluralName,
@@ -402,11 +402,13 @@ class Company_m extends MY_Model
 
         foreach ($social_links as $link) {
             $data = [
-                'name'       => $link->name,
+                'name'       => $link->name ?? null,
                 'type'       => $link->type,
                 'href'       => $link->href,
                 'company_id' => $company_id,
             ];
+
+            dump_warning('Добавлен сайт компании: '. $link->href);
 
             if ($this->company_social_m->count(null, $data)) {
                 continue;
@@ -570,7 +572,7 @@ class Company_m extends MY_Model
     private function emails($urls, int $company_id)
     {
         $this->load->model('Company/company_emails_m');
-        dump('Поиск email адресов: ' . implode(', ', $urls));
+        dump_info('Поиск email адресов: ' . implode(', ', $urls));
         return $this->company_emails_m->findAndSave($urls, $company_id);
     }
 

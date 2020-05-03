@@ -58,7 +58,7 @@ class Run extends MY_Controller
                         $this->proxy_m->lock($free_proxy->proxy_id);
 
                         if (is_cli()) {
-                            dump('Стартуем задачу: '
+                            dump('Старт задачи: '
                                 . $task->geography->address . '. Секций: '
                                 . count($task->geography->containers));
                         }
@@ -141,7 +141,7 @@ class Run extends MY_Controller
      */
     private function run($task)
     {
-        //if (is_cli()) dump('Отправляем запрос в Яндекс');
+        if (is_cli()) dump_info(date('H:i:s'). ': Отправляем запрос в Яндекс');
 
         // загружаем компании
         $data = $this->map_requests->load($task);
@@ -150,6 +150,7 @@ class Run extends MY_Controller
         if (! $data || ! isset($data->totalResultCount)) {
             // сообщение в браузер
             if (! is_cli()) {
+                dump_error('Не найдено данных или произошла ошибка.');
                 return [
                     'result'  => false,
                     'message' => 'Не найдено данных или произошла ошибка. Подробное сообщение в демоне.'
@@ -168,6 +169,7 @@ class Run extends MY_Controller
 
         // сохраняем полученные данные о кампаниях
         $task = $this->company_m->add($data, $task);
+        dump_success('-- Конец обработки запроса.');
 
         // зацикливаем в один запрос если есть что проверить
         if (! is_bool($task)) {

@@ -49,7 +49,7 @@ class Captcha_2captcha {
             'json'      => intval($this->is_json)
         ];
 
-        $response = file_get_contents(
+        $response = @file_get_contents(
             $this->requestUrl.'?'.http_build_query($query),
             false,
             stream_context_create(

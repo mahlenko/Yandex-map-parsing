@@ -59,6 +59,9 @@ class Company_emails_m extends MY_Model
 
             // поиск страниц контактов по sitemap.xml
             $pages = $this->findContactPages($punycode, $company_id);
+            if ($pages) {
+                dump_warning('Страниц поиска email: ' . count($pages));
+            }
 
             if (! $pages) {
                 continue;
@@ -66,6 +69,9 @@ class Company_emails_m extends MY_Model
 
             // парсинг найденных страниц
             foreach ($pages as $page) {
+
+                dump_info('Просмотр страницы: '. $page);
+
                 $curl = new Curl();
                 $curl->setTimeout(1);
                 $curl->get($page);
@@ -138,7 +144,7 @@ class Company_emails_m extends MY_Model
         // не проверяем не доступные адреса
         if (! $this->company_urls_m->count(null, ['url' => $url, 'company_id' => $company_id, 'check_status_code' => 200]))
         {
-            // dump('Адрес ' . $url . ' проверялся ранее.');
+            dump_error('Адрес ' . $url . ' проверялся ранее.');
             return false;
         }
 
