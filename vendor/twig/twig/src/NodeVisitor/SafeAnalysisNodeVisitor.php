@@ -23,6 +23,9 @@ use Twig\Node\Expression\NameExpression;
 use Twig\Node\Expression\ParentExpression;
 use Twig\Node\Node;
 
+/**
+ * @internal
+ */
 final class SafeAnalysisNodeVisitor implements NodeVisitorInterface
 {
     private $data = [];
@@ -133,7 +136,7 @@ final class SafeAnalysisNodeVisitor implements NodeVisitorInterface
         return $node;
     }
 
-    private function intersectSafe(array $a = null, array $b = null): array
+    private function intersectSafe(?array $a = null, ?array $b = null): array
     {
         if (null === $a || null === $b) {
             return [];

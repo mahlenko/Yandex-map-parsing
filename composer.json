@@ -18,14 +18,13 @@
       	"ext-json": "*",
 		"phpoffice/phpspreadsheet": "^1.10",
 		"imangazaliev/didom": "^1.14",
-      "ext-curl": "*"
+      	"ext-curl": "*"
     },
 	"suggest": {
 		"paragonie/random_compat": "Provides better randomness in PHP 5.x"
 	},
 	"require-dev": {
-		"mikey179/vfsStream": "1.1.*",
-		"phpunit/phpunit": "4.* || 5.*",
+		"mikey179/vfsstream": "1.1.*",
 		"symfony/var-dumper": "^5.0"
 	}
 }

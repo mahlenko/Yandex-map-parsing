@@ -12,6 +12,7 @@
 
 namespace Twig\Node;
 
+use Twig\Attribute\YieldReady;
 use Twig\Compiler;
 use Twig\Source;
 
@@ -20,6 +21,7 @@ use Twig\Source;
  *
  * @author Fabien Potencier <fabien@symfony.com>
  */
+#[YieldReady]
 class Node implements \Countable, \IteratorAggregate
 {
     protected $nodes;
@@ -27,7 +29,6 @@ class Node implements \Countable, \IteratorAggregate
     protected $lineno;
     protected $tag;
 
-    private $name;
     private $sourceContext;
 
     /**
@@ -36,11 +37,11 @@ class Node implements \Countable, \IteratorAggregate
      * @param int    $lineno     The line number
      * @param string $tag        The tag name associated with the Node
      */
-    public function __construct(array $nodes = [], array $attributes = [], int $lineno = 0, string $tag = null)
+    public function __construct(array $nodes = [], array $attributes = [], int $lineno = 0, ?string $tag = null)
     {
         foreach ($nodes as $name => $node) {
             if (!$node instanceof self) {
-                throw new \InvalidArgumentException(sprintf('Using "%s" for the value of node "%s" of "%s" is not supported. You must pass a \Twig\Node\Node instance.', \is_object($node) ? \get_class($node) : (null === $node ? 'null' : \gettype($node)), $name, \get_class($this)));
+                throw new \InvalidArgumentException(sprintf('Using "%s" for the value of node "%s" of "%s" is not supported. You must pass a \Twig\Node\Node instance.', \is_object($node) ? \get_class($node) : (null === $node ? 'null' : \gettype($node)), $name, static::class));
             }
         }
         $this->nodes = $nodes;
@@ -56,7 +57,7 @@ class Node implements \Countable, \IteratorAggregate
             $attributes[] = sprintf('%s: %s', $name, str_replace("\n", '', var_export($value, true)));
         }
 
-        $repr = [\get_class($this).'('.implode(', ', $attributes)];
+        $repr = [static::class.'('.implode(', ', $attributes)];
 
         if (\count($this->nodes)) {
             foreach ($this->nodes as $name => $node) {
@@ -83,7 +84,7 @@ class Node implements \Countable, \IteratorAggregate
     public function compile(Compiler $compiler)
     {
         foreach ($this->nodes as $node) {
-            $node->compile($compiler);
+            $compiler->subcompile($node);
         }
     }
 
@@ -105,7 +106,7 @@ class Node implements \Countable, \IteratorAggregate
     public function getAttribute(string $name)
     {
         if (!\array_key_exists($name, $this->attributes)) {
-            throw new \LogicException(sprintf('Attribute "%s" does not exist for Node "%s".', $name, \get_class($this)));
+            throw new \LogicException(sprintf('Attribute "%s" does not exist for Node "%s".', $name, static::class));
         }
 
         return $this->attributes[$name];
@@ -129,7 +130,7 @@ class Node implements \Countable, \IteratorAggregate
     public function getNode(string $name): self
     {
         if (!isset($this->nodes[$name])) {
-            throw new \LogicException(sprintf('Node "%s" does not exist for Node "%s".', $name, \get_class($this)));
+            throw new \LogicException(sprintf('Node "%s" does not exist for Node "%s".', $name, static::class));
         }
 
         return $this->nodes[$name];
@@ -137,6 +138,9 @@ class Node implements \Countable, \IteratorAggregate
 
     public function setNode(string $name, self $node): void
     {
+        if (null !== $this->sourceContext) {
+            $node->setSourceContext($this->sourceContext);
+        }
         $this->nodes[$name] = $node;
     }
 
@@ -145,6 +149,10 @@ class Node implements \Countable, \IteratorAggregate
         unset($this->nodes[$name]);
     }
 
+    /**
+     * @return int
+     */
+    #[\ReturnTypeWillChange]
     public function count()
     {
         return \count($this->nodes);
